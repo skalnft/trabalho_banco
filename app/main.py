@@ -1,25 +1,27 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
-# from database.dbconnection import connec
+from database.dbconnection import cursor
 
 app = FastAPI()
 
-@app.exception_handler(HTTPException)
-async def http_exception_handler(request, exc):
-    return JSONResponse(status_code=exc.status_code, content={"message": "Not found"})
+@app.get("/paises")
+def listar_paises():
+    paises = _buscar_paises()
+    return JSONResponse({"Países": paises})
 
-@app.get('/')
-def hello_world():
-    return {'message': 'Helo World'}
+@app.get("/pais/{id}")
+def deletar_pais(id: int):
+    _excluir_pais_por_id(id)
+    return JSONResponse('DELETED')
 
-@app.get("/pessoa/{id}")
-def listar_pessoas(id: int):
-    return id
+def _buscar_paises():
+    cursor.execute("SELECT * FROM BUSCAR_PAISES();")
+    results = cursor.fetchall()
+    return results
 
-@app.delete("/pessoa/{nome}")
-def deletar_pessoa(nome: str):
-    return "User deletado com sucesso!"
+def _excluir_pais_por_id(id):
+    cursor.execute(f'EXEC DELETAR_PAIS_POR_NOME @id = {id};')
 
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=3000)
+    uvicorn.run(app, host="127.0.0.1", port=3333)
